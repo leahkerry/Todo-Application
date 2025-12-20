@@ -5,10 +5,14 @@ use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
 Route::get('/', function () {
-    return Inertia::render('Dashboard', [
-        'canRegister' => Features::enabled(Features::registration()),
-    ]);
-})->name('home');
+    return Inertia::render('TodoApp');
+});
+
+// Route::get('/', function () {
+//     return Inertia::render('Dashboard', [
+//         'canRegister' => Features::enabled(Features::registration()),
+//     ]);
+// })->name('home');
 
 Route::get('dashboard', function () {
     return Inertia::render('Dashboard');
