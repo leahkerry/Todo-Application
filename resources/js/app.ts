@@ -8,6 +8,14 @@ import { initializeTheme } from './composables/useAppearance';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
+// NOTE: added these 5 lines
+// import { createApp } from "vue";
+// import TodoApp from "./pages/TodoApp.vue";
+import TodoApp from "./pages/TodoApp.vue";
+const app = createApp({});
+app.component("todo-app", TodoApp);
+app.mount("#app");
+
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
     resolve: (name) =>
