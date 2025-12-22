@@ -6,7 +6,7 @@ import type { DefineComponent } from 'vue';
 import { createApp, h } from 'vue';
 import { initializeTheme } from './composables/useAppearance';
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const appName = import.meta.env.VITE_APP_NAME || 'To-Do List';
 
 // NOTE: added these 4 lines
 import TodoApp from "./pages/TodoApp.vue";
