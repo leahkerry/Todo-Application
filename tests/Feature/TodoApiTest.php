@@ -55,7 +55,7 @@ class TodoApiTest extends TestCase
     {
         $todo = Todo::factory()->create();
 
-        $data = ['due_date' => '2025-01-01', 'completed' => true];
+        $data = ['title' => 'Updated Todo', 'due_date' => '2025-01-01', 'completed' => true];
 
         $response = $this->putJson("/api/todos/{$todo->id}", $data);
 

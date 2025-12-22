@@ -260,11 +260,16 @@ export default {
 
     formatDate(dateString) {
       if (!dateString) return "";
-      const date = new Date(dateString);
+      // Parse the date string directly without timezone conversion
+      // For dates in YYYY-MM-DD format
+      const [year, month, day] = dateString.split('T')[0].split('-');
+      const date = new Date(year, month - 1, day);
+      
       return date.toLocaleDateString("en-US", { 
         month: "short", 
         day: "numeric", 
-        year: "numeric" 
+        year: "numeric",
+        timeZone: undefined  // Use local timezone
       });
     },
 
