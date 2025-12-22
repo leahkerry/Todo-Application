@@ -16,9 +16,9 @@ Pros: Lightweight, simple setup, stored in single file, works because app does n
 Downsides: Does not support multiple users  
 
 ### Testing
-1. Created and ran automated API tests in /tests/Feature/TodoApiTest.php to ensure Todo database performed correct CRUD operations
+1. Created and ran automated API tests in /tests/Feature/TodoApiTest.php to ensure Todo database performed correct CRUD operations and returned expected HTTP status codes
 2. Validated functionality by testing on localhost
-3. Used curl to test HTTP status codes on command line
+3. Used curl to test HTTP status codes on command line (in addition to the unit test)
 4. Tested on deployed application with Debug mode set to true. 
 
 ### Deployed application: Railway
