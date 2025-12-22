@@ -1,8 +1,9 @@
+<!-- Todo App functionality and frontend -->
 <template>
   <div class="mx-auto mt-16 max-w-[520px] rounded-xl bg-white p-8 shadow-[0_10px_25px_rgba(0,0,0,0.08)] dark:bg-[#0a0a0a]">
     <h1 class="mb-6 text-center text-2xl font-bold">To-Do List</h1>
 
-    <!-- Sort Controls -->
+    <!-- Sort Controls: -->
     <div class="mb-4 flex items-center gap-2">
       <label class="text-sm font-medium">Sort by:</label>
       <select 
@@ -13,10 +14,21 @@
         <option value="due">Due Date</option>
         <option value="alpha">Alphabetical</option>
       </select>
+       <label class="text-sm font-medium">Show completed:</label>
+       <div
+            class="flex h-[22px] w-[22px] cursor-pointer select-none items-center justify-center rounded border-2 border-indigo-600 text-sm text-white dark:text-[#0a0a0a]"
+            :class="{ 'bg-indigo-600': this.showComplete}"
+            @click="toggleShowComplete()"
+          >
+            ✓
+          </div>
     </div>
+
 
     <!-- Add Todo Form -->
     <form class="mb-6 flex flex-col gap-2" @submit.prevent="addTodo">
+      <!-- Title text -->
+    
       <input
         v-model="newTodo"
         type="text" 
@@ -24,7 +36,9 @@
         class="rounded-md border border-gray-300 px-3 py-2.5 text-base focus:border-indigo-600 focus:outline-none"
         required
       />
-      <div class="flex gap-2">
+      <!-- Due date (Optional) -->
+      <div class="flex gap-2 items-center">
+        <label class="text-sm font-medium">Due Date:</label>
         <input
           v-model="newDueDate"
           type="date"
@@ -44,7 +58,8 @@
         :key="todo.id"
         class="flex flex-col gap-2 border-b border-gray-200 px-2.5 py-3 last:border-b-0"
       >
-        <div class="flex items-center gap-3">
+        <div 
+          class="flex items-center gap-3">
           <!-- Square checkbox -->
           <div
             class="flex h-[22px] w-[22px] cursor-pointer select-none items-center justify-center rounded border-2 border-indigo-600 text-sm text-white dark:text-[#0a0a0a]"
@@ -135,6 +150,7 @@ export default {
       newTodo: "",
       newDueDate: "",
       editingId: null,
+      showComplete: true,
       editText: "",
       editDueDate: "",
       sortBy: "created",
@@ -142,8 +158,13 @@ export default {
   },
   computed: {
     sortedTodos() {
-      const sorted = [...this.todos];
-      
+      let sorted = [...this.todos];
+
+      // Do not show completed todos if turned off
+      if (!this.showComplete) {
+        sorted = sorted.filter((todo) => !todo.completed);
+      }
+
       if (this.sortBy === "created") {
         return sorted.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
       } else if (this.sortBy === "due") {
@@ -156,10 +177,10 @@ export default {
       } else if (this.sortBy === "alpha") {
         return sorted.sort((a, b) => a.title.localeCompare(b.title));
       }
-      
       return sorted;
     }
   },
+
   methods: {
     async fetchTodos() {
       try {
@@ -232,13 +253,23 @@ export default {
       this.editDueDate = todo.due_date || "";
     },
 
+    toggleShowComplete() {
+        this.showComplete = !this.showComplete;
+        return !this.showComplete;
+    }, 
+
     formatDate(dateString) {
       if (!dateString) return "";
-      const date = new Date(dateString);
+      // Parse the date string directly without timezone conversion
+      // For dates in YYYY-MM-DD format
+      const [year, month, day] = dateString.split('T')[0].split('-');
+      const date = new Date(year, month - 1, day);
+      
       return date.toLocaleDateString("en-US", { 
         month: "short", 
         day: "numeric", 
-        year: "numeric" 
+        year: "numeric",
+        timeZone: undefined  // Use local timezone
       });
     },
 

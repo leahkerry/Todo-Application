@@ -29,7 +29,7 @@ class TodoController extends Controller
             'title' => 'required|string|max:255',
             'due_date' => 'sometimes|nullable|date',
         ]);
-        
+
         $todo->update($request->all());
 
         return $todo;
