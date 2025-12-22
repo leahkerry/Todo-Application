@@ -11,6 +11,12 @@ class TodoController extends Controller
         return Todo::all();
     }
 
+    public function show($id)
+    {
+        $todo = Todo::findOrFail($id);
+        return $todo;
+    }
+
     public function store(Request $request)
     {
         $request->validate([
