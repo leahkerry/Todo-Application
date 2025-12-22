@@ -1,12 +1,12 @@
 <template>
-  <div class="todo-app">
+  <div class="dark:bg-[#0a0a0a] todo-app">
     <h1 class="title">To-Do List</h1>
 
     <!-- Add Todo Form -->
     <form class="add-form" @submit.prevent="addTodo">
       <input
         v-model="newTodo"
-        type="text"
+        type="text" 
         placeholder="What do you need to do?"
         class="todo-input"
         required
@@ -23,7 +23,7 @@
       >
         <!-- Square checkbox -->
         <div
-          class="checkbox"
+          class="text-white dark:text-[#0a0a0a] checkbox "
           :class="{ checked: todo.completed }"
           @click="toggleComplete(todo)"
         >
@@ -175,7 +175,8 @@ export default {
   margin: 4rem auto;
   padding: 2rem;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  background: #ffffff;
+  /* background: #ffffff; */
+  
   border-radius: 12px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
 }
@@ -249,7 +250,7 @@ export default {
   align-items: center;
   justify-content: center;
   font-size: 14px;
-  color: white;
+  /* color: white; */
   cursor: pointer;
   user-select: none;
 }
