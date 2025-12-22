@@ -16,6 +16,7 @@ class TodoFactory extends Factory
         return [
             'title' => $this->faker->sentence,
             'completed' => $this->faker->boolean,
+            'due_date' => $this->faker->date,
         ];
     }
 }

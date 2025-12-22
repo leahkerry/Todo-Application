@@ -1,84 +1,125 @@
 <template>
-  <div class="dark:bg-[#0a0a0a] todo-app">
-    <h1 class="title">To-Do List</h1>
+  <div class="mx-auto mt-16 max-w-[520px] rounded-xl bg-white p-8 shadow-[0_10px_25px_rgba(0,0,0,0.08)] dark:bg-[#0a0a0a]">
+    <h1 class="mb-6 text-center text-2xl font-bold">To-Do List</h1>
+
+    <!-- Sort Controls -->
+    <div class="mb-4 flex items-center gap-2">
+      <label class="text-sm font-medium">Sort by:</label>
+      <select 
+        v-model="sortBy"
+        class="rounded-md border border-gray-300 px-2 py-1 text-sm focus:border-indigo-600 focus:outline-none"
+      >
+        <option value="created">Date Created</option>
+        <option value="due">Due Date</option>
+        <option value="alpha">Alphabetical</option>
+      </select>
+    </div>
 
     <!-- Add Todo Form -->
-    <form class="add-form" @submit.prevent="addTodo">
+    <form class="mb-6 flex flex-col gap-2" @submit.prevent="addTodo">
       <input
         v-model="newTodo"
         type="text" 
         placeholder="What do you need to do?"
-        class="todo-input"
+        class="rounded-md border border-gray-300 px-3 py-2.5 text-base focus:border-indigo-600 focus:outline-none"
         required
       />
-      <button class="add-button" type="submit">Add</button>
+      <div class="flex gap-2">
+        <input
+          v-model="newDueDate"
+          type="date"
+          class="flex-1 rounded-md border border-gray-300 px-3 py-2.5 text-sm focus:border-indigo-600 focus:outline-none"
+          placeholder="Due date (optional)"
+        />
+        <button class="rounded-md bg-indigo-600 px-4 py-2.5 text-white hover:bg-indigo-700" type="submit">
+          Add
+        </button>
+      </div>
     </form>
 
     <!-- Todo List -->
-    <ul class="todo-list">
+    <ul class="m-0 list-none p-0">
       <li
-        v-for="todo in todos"
+        v-for="todo in sortedTodos"
         :key="todo.id"
-        class="todo-item"
+        class="flex flex-col gap-2 border-b border-gray-200 px-2.5 py-3 last:border-b-0"
       >
-        <!-- Square checkbox -->
-        <div
-          class="text-white dark:text-[#0a0a0a] checkbox "
-          :class="{ checked: todo.completed }"
-          @click="toggleComplete(todo)"
-        >
-          ✓
-        </div>
-
-        <!-- Todo text OR edit input -->
-        <template v-if="editingId === todo.id">
-          <input
-            v-model="editText"
-            class="edit-input"
-            @keyup.enter="saveEdit(todo)"
-            @keyup.esc="cancelEdit"
-            @blur="cancelEdit"
-            autofocus
-          />
-        </template>
-
-        <template v-else>
-          <span
-            class="todo-text"
-            :class="{ completed: todo.completed }"
-          >
-            {{ todo.title }}
-          </span>
-        </template>
-
-        <!-- Actions -->
-        <div class="actions">
-          <button
-            class="edit-button"
-            @click="startEdit(todo)"
-            v-if="editingId !== todo.id"
-          >
-            ✏️
-          </button>
-          <button
-            class="complete-edit-button"
-            @click="saveEdit(todo)"
-            v-if="editingId == todo.id"
+        <div class="flex items-center gap-3">
+          <!-- Square checkbox -->
+          <div
+            class="flex h-[22px] w-[22px] cursor-pointer select-none items-center justify-center rounded border-2 border-indigo-600 text-sm text-white dark:text-[#0a0a0a]"
+            :class="{ 'bg-indigo-600': todo.completed }"
+            @click="toggleComplete(todo)"
           >
             ✓
-          </button>
+          </div>
 
-          <button
-            class="delete-button"
-            @click="deleteTodo(todo.id)"
-          >
-            ✕
-          </button>
+          <!-- Todo text OR edit input -->
+          <template v-if="editingId === todo.id">
+            <div class="flex flex-1 flex-col gap-1.5">
+              <input
+                v-model="editText"
+                class="rounded border border-indigo-600 px-2 py-1.5"
+                @keyup.enter="saveEdit(todo)"
+                @keyup.esc="cancelEdit"
+                placeholder="Task name"
+                autofocus
+              />
+              <input
+                v-model="editDueDate"
+                type="date"
+                class="rounded border border-indigo-600 px-2 py-1.5 text-sm"
+                @keyup.enter="saveEdit(todo)"
+                @keyup.esc="cancelEdit"
+              />
+            </div>
+          </template>
+
+          <template v-else>
+            <div class="flex-1">
+              <span
+                class="block text-base"
+                :class="{ 'text-gray-400 line-through': todo.completed }"
+              >
+                {{ todo.title }}
+              </span>
+              <div class="mt-1 flex gap-3 text-xs text-gray-500">
+                <span v-if="todo.due_date" :class="{ 'text-red-500 font-medium': isOverdue(todo) }">
+                  📅 Due: {{ formatDate(todo.due_date) }}
+                </span>
+              </div>
+            </div>
+          </template>
+
+          <!-- Actions -->
+          <div class="flex gap-1">
+            <button
+              class="cursor-pointer border-0 bg-transparent text-base"
+              @click="startEdit(todo)"
+              v-if="editingId !== todo.id"
+            >
+              ✏️
+            </button>
+            <button
+              class="cursor-pointer border-0 bg-transparent text-base"
+              @click="saveEdit(todo)"
+              v-if="editingId == todo.id"
+            >
+              ✓
+            </button>
+
+            <button
+              class="cursor-pointer border-0 bg-transparent text-lg text-red-500 hover:text-red-700"
+              @click="deleteTodo(todo.id)"
+            >
+              ✕
+            </button>
+          </div>
         </div>
       </li>
     </ul>
 
-    <p v-if="todos.length === 0" class="empty-state">
+    <p v-if="todos.length === 0" class="mt-4 text-center text-gray-500">
       No todos yet. Add one above!
     </p>
   </div>
@@ -92,9 +133,32 @@ export default {
     return {
       todos: [],
       newTodo: "",
+      newDueDate: "",
       editingId: null,
       editText: "",
+      editDueDate: "",
+      sortBy: "created",
     };
+  },
+  computed: {
+    sortedTodos() {
+      const sorted = [...this.todos];
+      
+      if (this.sortBy === "created") {
+        return sorted.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      } else if (this.sortBy === "due") {
+        return sorted.sort((a, b) => {
+          if (!a.due_date && !b.due_date) return 0;
+          if (!a.due_date) return 1;
+          if (!b.due_date) return -1;
+          return new Date(a.due_date) - new Date(b.due_date);
+        });
+      } else if (this.sortBy === "alpha") {
+        return sorted.sort((a, b) => a.title.localeCompare(b.title));
+      }
+      
+      return sorted;
+    }
   },
   methods: {
     async fetchTodos() {
@@ -109,9 +173,11 @@ export default {
       try {
         const response = await axios.post("/api/todos", {
           title: this.newTodo,
+          due_date: this.newDueDate || null,
         });
         this.todos.push(response.data);
         this.newTodo = "";
+        this.newDueDate = "";
       } catch (error) {
         console.error("Error adding todo:", error);
       }
@@ -145,21 +211,40 @@ export default {
       const updated = {
         ...todo,
         title: this.editText,
+        due_date: this.editDueDate || null,
       };
 
       await axios.put(`/api/todos/${todo.id}`, updated);
       todo.title = this.editText;
+      todo.due_date = this.editDueDate || null;
       this.cancelEdit();
     },
 
     cancelEdit() {
       this.editingId = null;
       this.editText = "";
+      this.editDueDate = "";
     },
 
     startEdit(todo) {
       this.editingId = todo.id;
       this.editText = todo.title;
+      this.editDueDate = todo.due_date || "";
+    },
+
+    formatDate(dateString) {
+      if (!dateString) return "";
+      const date = new Date(dateString);
+      return date.toLocaleDateString("en-US", { 
+        month: "short", 
+        day: "numeric", 
+        year: "numeric" 
+      });
+    },
+
+    isOverdue(todo) {
+      if (!todo.due_date || todo.completed) return false;
+      return new Date(todo.due_date) < new Date();
     },
   },
   mounted() {
@@ -167,153 +252,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-/* Layout */
-.todo-app {
-  max-width: 520px;
-  margin: 4rem auto;
-  padding: 2rem;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  /* background: #ffffff; */
-  
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-}
-
-.title {
-  text-align: center;
-  margin-bottom: 1.5rem;
-  font-weight: bold;
-  font-size: 1.5rem;
-}
-
-/* Form */
-.add-form {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.todo-input {
-  flex: 1;
-  padding: 0.6rem 0.75rem;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  font-size: 1rem;
-}
-
-.todo-input:focus {
-  outline: none;
-  border-color: #4f46e5;
-}
-
-.add-button {
-  padding: 0.6rem 1rem;
-  border-radius: 6px;
-  border: none;
-  background: #4f46e5;
-  color: white;
-  cursor: pointer;
-}
-
-.add-button:hover {
-  background: #4338ca;
-}
-
-/* Todo list */
-.todo-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.todo-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.6rem;
-  border-bottom: 1px solid #eee;
-}
-
-.todo-item:last-child {
-  border-bottom: none;
-}
-
-/* Checkbox */
-.checkbox {
-  width: 22px;
-  height: 22px;
-  border: 2px solid #4f46e5;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  /* color: white; */
-  cursor: pointer;
-  user-select: none;
-}
-
-.checkbox.checked {
-  background: #4f46e5;
-}
-
-/* Todo text */
-.todo-text {
-  flex: 1;
-  font-size: 1rem;
-}
-
-.completed {
-  text-decoration: line-through;
-  color: #9ca3af;
-}
-
-/* Edit input */
-.edit-input {
-  flex: 1;
-  padding: 0.4rem 0.5rem;
-  border-radius: 4px;
-  border: 1px solid #4f46e5;
-}
-
-.edit-button {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  font-size: 1rem;
-}
-.complete-edit-button {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  font-size: 1rem;
-}
-
-/* Actions */
-.actions {
-  display: flex;
-  gap: 0.25rem;
-}
-
-/* Delete */
-.delete-button {
-  border: none;
-  background: transparent;
-  color: #ef4444;
-  font-size: 1.1rem;
-  cursor: pointer;
-}
-
-.delete-button:hover {
-  color: #b91c1c;
-}
-
-/* Empty state */
-.empty-state {
-  text-align: center;
-  color: #6b7280;
-  margin-top: 1rem;
-}
-</style>

@@ -15,6 +15,7 @@ class TodoController extends Controller
     {
         $request->validate([
             'title' => 'required|string|max:255',
+            'due_date' => 'sometimes|nullable|date',
         ]);
 
         return Todo::create($request->all());
@@ -23,6 +24,12 @@ class TodoController extends Controller
     public function update(Request $request, $id)
     {
         $todo = Todo::findOrFail($id);
+
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'due_date' => 'sometimes|nullable|date',
+        ]);
+        
         $todo->update($request->all());
 
         return $todo;
