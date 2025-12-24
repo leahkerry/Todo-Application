@@ -1,3 +1,4 @@
+
 <!-- Todo App functionality and frontend -->
 <template>
   <div class="mx-auto mt-16 max-w-[520px] rounded-xl bg-white p-8 shadow-[0_10px_25px_rgba(0,0,0,0.08)] dark:bg-[#0a0a0a]">
