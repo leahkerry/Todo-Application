@@ -3,13 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
-
-// NOTE: added
 use App\Http\Controllers\TodoController;
 
-// Route::get('/', function () {
-//     return Inertia::render('TodoApp');
-// })->name('home');;
 
 Route::get('/', function () {
     return Inertia::render('Dashboard', [
@@ -23,7 +18,6 @@ Route::get('dashboard', function () {
 })->middleware(['auth'])->name('dashboard');
 // NOTE: do you need verified above?
 
-// NOTE: added
 Route::middleware(['auth'])->group(function () {
     Route::get('/todos', [TodoController::class, 'index']);
 });

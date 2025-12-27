@@ -47,7 +47,6 @@ export default {
         return;
       }
       try {
-        await axios.get('/sanctum/csrf-cookie'); 
         const response = await axios.get("/api/todos");
         this.todos = response.data;
       } catch (error) {
