@@ -41,7 +41,13 @@ export default {
 
   methods: {
     async fetchTodos() {
+      if (!this.$page.props.auth?.user) {
+        console.error('User not authenticated');
+        window.location.href = '/login';
+        return;
+      }
       try {
+        await axios.get('/sanctum/csrf-cookie'); 
         const response = await axios.get("/api/todos");
         this.todos = response.data;
       } catch (error) {
@@ -73,10 +79,10 @@ export default {
         console.error("Error toggling todo:", error);
       }
     },
-    async deleteTodo(id) {
+    async deleteTodo(todo) {
       try {
-        await axios.delete(`/api/todos/${id}`);
-        this.todos = this.todos.filter((todo) => todo.id !== id);
+        await axios.delete(`/api/todos/${todo.id}`);
+        this.todos = this.todos.filter((curr_todo) => curr_todo !== todo);
       } catch (error) {
         console.error("Error deleting todo:", error);
       }
@@ -137,6 +143,10 @@ export default {
     },
   },
   mounted() {
+    if (!this.$page.props.auth?.user) {
+      window.location.href = '/login';
+      return;
+    }
     this.fetchTodos();
   },
 };
@@ -270,7 +280,7 @@ export default {
 
             <button
               class="cursor-pointer border-0 bg-transparent text-lg text-red-500 hover:text-red-700"
-              @click="deleteTodo(todo.id)"
+              @click="deleteTodo(todo)"
             >
               ✕
             </button>
