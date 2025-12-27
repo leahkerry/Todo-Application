@@ -13,8 +13,8 @@ export default defineConfig({
         }),
         tailwindcss(),
         wayfinder({
+            buildOnly:true,
             formVariants: true,
-            skipGeneration: process.env.NODE_ENV === 'production',
         }),
         vue({
             template: {
