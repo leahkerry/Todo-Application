@@ -5,16 +5,16 @@ import laravel from 'laravel-vite-plugin';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-    // NOTE: removed // ssr: 'resources/js/ssr.ts', from laravel plugin
     plugins: [
         laravel({
             input: ['resources/js/app.ts'],
-            
+            ssr: 'resources/js/ssr.ts', 
             refresh: true,
         }),
         tailwindcss(),
         wayfinder({
             formVariants: true,
+            skipGeneration: process.env.NODE_ENV === 'production',
         }),
         vue({
             template: {
