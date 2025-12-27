@@ -8,9 +8,13 @@ class Todo extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['title', 'completed', 'due_date'];
+    protected $fillable = ['title', 'completed', 'due_date', 'user_id'];
     protected $casts = [
         'completed' => 'boolean',
-        // 'due_date' => 'date',
     ];
+    // Define the relationship
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

@@ -16,9 +16,23 @@ interface Props {
     user: User;
 }
 
+// import { router } from '@inertiajs/vue3';
+
 const handleLogout = () => {
-    router.flushAll();
+    router.post('/logout', {}, {
+        onSuccess: () => {
+            // Force full page reload to clear all state
+            window.location.href = '/login';
+        },
+        onError: (errors) => {
+            console.error('Logout error:', errors);
+        },
+    });
 };
+
+// const handleLogout = () => {
+//     router.flushAll();
+// };
 
 defineProps<Props>();
 </script>
@@ -44,12 +58,15 @@ defineProps<Props>();
     </DropdownMenuGroup>
     <DropdownMenuSeparator />
     <DropdownMenuItem :as-child="true">
+        <!-- NOTE: changed :href="logout()" -->
         <Link
             class="block w-full"
             :href="logout()"
             @click="handleLogout"
             as="button"
             data-test="logout-button"
+            :preserve-scroll="false"
+            :preserve-state="false"
         >
             <LogOut class="mr-2 h-4 w-4" />
             Log out

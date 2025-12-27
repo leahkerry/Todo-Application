@@ -49,4 +49,10 @@ class User extends Authenticatable
             'two_factor_confirmed_at' => 'datetime',
         ];
     }
+
+    // Inverse relationshipt to todo
+    public function todos()
+    {
+        return $this->hasMany(Todo::class);
+    }
 }

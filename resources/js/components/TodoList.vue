@@ -1,3 +1,157 @@
+<script>
+import axios from "axios";
+
+export default {
+  data() {
+    return {
+      todos: [],
+      newTodo: "",
+      newDueDate: "",
+      editingId: null,
+      showComplete: true,
+      editText: "",
+      editDueDate: "",
+      sortBy: "created",
+    };
+  },
+  computed: {
+    sortedTodos() {
+      let sorted = [...this.todos];
+
+      // Do not show completed todos if turned off
+      if (!this.showComplete) {
+        sorted = sorted.filter((todo) => !todo.completed);
+      }
+
+      if (this.sortBy === "created") {
+        return sorted.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      } else if (this.sortBy === "due") {
+        return sorted.sort((a, b) => {
+          if (!a.due_date && !b.due_date) return 0;
+          if (!a.due_date) return 1;
+          if (!b.due_date) return -1;
+          return new Date(a.due_date) - new Date(b.due_date);
+        });
+      } else if (this.sortBy === "alpha") {
+        return sorted.sort((a, b) => a.title.localeCompare(b.title));
+      }
+      return sorted;
+    }
+  },
+
+  methods: {
+    async fetchTodos() {
+      if (!this.$page.props.auth?.user) {
+        console.error('User not authenticated');
+        window.location.href = '/login';
+        return;
+      }
+      try {
+        await axios.get('/sanctum/csrf-cookie'); 
+        const response = await axios.get("/api/todos");
+        this.todos = response.data;
+      } catch (error) {
+        console.error("Error fetching todos:", error);
+      }
+    },
+    async addTodo() {
+      try {
+        const response = await axios.post("/api/todos", {
+          title: this.newTodo,
+          due_date: this.newDueDate || null,
+        });
+        this.todos.push(response.data);
+        this.newTodo = "";
+        this.newDueDate = "";
+      } catch (error) {
+        console.error("Error adding todo:", error);
+      }
+    },
+    async toggleComplete(todo) {
+      try {
+        const updatedTodo = {
+          ...todo,
+          completed: !todo.completed,
+        };
+        await axios.put(`/api/todos/${todo.id}`, updatedTodo);
+        todo.completed = !todo.completed;
+      } catch (error) {
+        console.error("Error toggling todo:", error);
+      }
+    },
+    async deleteTodo(todo) {
+      try {
+        await axios.delete(`/api/todos/${todo.id}`);
+        this.todos = this.todos.filter((curr_todo) => curr_todo !== todo);
+      } catch (error) {
+        console.error("Error deleting todo:", error);
+      }
+    },
+    async saveEdit(todo) {
+      if (!this.editText.trim()) {
+        this.cancelEdit();
+        return;
+      }
+
+      const updated = {
+        ...todo,
+        title: this.editText,
+        due_date: this.editDueDate || null,
+      };
+
+      await axios.put(`/api/todos/${todo.id}`, updated);
+      todo.title = this.editText;
+      todo.due_date = this.editDueDate || null;
+      this.cancelEdit();
+    },
+
+    cancelEdit() {
+      this.editingId = null;
+      this.editText = "";
+      this.editDueDate = "";
+    },
+
+    startEdit(todo) {
+      this.editingId = todo.id;
+      this.editText = todo.title;
+      this.editDueDate = todo.due_date || "";
+    },
+
+    toggleShowComplete() {
+        this.showComplete = !this.showComplete;
+        return !this.showComplete;
+    }, 
+
+    formatDate(dateString) {
+      if (!dateString) return "";
+      // Parse the date string directly without timezone conversion
+      // For dates in YYYY-MM-DD format
+      const [year, month, day] = dateString.split('T')[0].split('-');
+      const date = new Date(year, month - 1, day);
+      
+      return date.toLocaleDateString("en-US", { 
+        month: "short", 
+        day: "numeric", 
+        year: "numeric",
+        timeZone: undefined  // Use local timezone
+      });
+    },
+
+    isOverdue(todo) {
+      if (!todo.due_date || todo.completed) return false;
+      return new Date(todo.due_date) < new Date();
+    },
+  },
+  mounted() {
+    if (!this.$page.props.auth?.user) {
+      window.location.href = '/login';
+      return;
+    }
+    this.fetchTodos();
+  },
+};
+</script>
+
 
 <!-- Todo App functionality and frontend -->
 <template>
@@ -126,7 +280,7 @@
 
             <button
               class="cursor-pointer border-0 bg-transparent text-lg text-red-500 hover:text-red-700"
-              @click="deleteTodo(todo.id)"
+              @click="deleteTodo(todo)"
             >
               ✕
             </button>
@@ -140,147 +294,3 @@
     </p>
   </div>
 </template>
-
-<script>
-import axios from "axios";
-
-export default {
-  data() {
-    return {
-      todos: [],
-      newTodo: "",
-      newDueDate: "",
-      editingId: null,
-      showComplete: true,
-      editText: "",
-      editDueDate: "",
-      sortBy: "created",
-    };
-  },
-  computed: {
-    sortedTodos() {
-      let sorted = [...this.todos];
-
-      // Do not show completed todos if turned off
-      if (!this.showComplete) {
-        sorted = sorted.filter((todo) => !todo.completed);
-      }
-
-      if (this.sortBy === "created") {
-        return sorted.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-      } else if (this.sortBy === "due") {
-        return sorted.sort((a, b) => {
-          if (!a.due_date && !b.due_date) return 0;
-          if (!a.due_date) return 1;
-          if (!b.due_date) return -1;
-          return new Date(a.due_date) - new Date(b.due_date);
-        });
-      } else if (this.sortBy === "alpha") {
-        return sorted.sort((a, b) => a.title.localeCompare(b.title));
-      }
-      return sorted;
-    }
-  },
-
-  methods: {
-    async fetchTodos() {
-      try {
-        const response = await axios.get("/api/todos");
-        this.todos = response.data;
-      } catch (error) {
-        console.error("Error fetching todos:", error);
-      }
-    },
-    async addTodo() {
-      try {
-        const response = await axios.post("/api/todos", {
-          title: this.newTodo,
-          due_date: this.newDueDate || null,
-        });
-        this.todos.push(response.data);
-        this.newTodo = "";
-        this.newDueDate = "";
-      } catch (error) {
-        console.error("Error adding todo:", error);
-      }
-    },
-    async toggleComplete(todo) {
-      try {
-        const updatedTodo = {
-          ...todo,
-          completed: !todo.completed,
-        };
-        await axios.put(`/api/todos/${todo.id}`, updatedTodo);
-        todo.completed = !todo.completed;
-      } catch (error) {
-        console.error("Error toggling todo:", error);
-      }
-    },
-    async deleteTodo(id) {
-      try {
-        await axios.delete(`/api/todos/${id}`);
-        this.todos = this.todos.filter((todo) => todo.id !== id);
-      } catch (error) {
-        console.error("Error deleting todo:", error);
-      }
-    },
-    async saveEdit(todo) {
-      if (!this.editText.trim()) {
-        this.cancelEdit();
-        return;
-      }
-
-      const updated = {
-        ...todo,
-        title: this.editText,
-        due_date: this.editDueDate || null,
-      };
-
-      await axios.put(`/api/todos/${todo.id}`, updated);
-      todo.title = this.editText;
-      todo.due_date = this.editDueDate || null;
-      this.cancelEdit();
-    },
-
-    cancelEdit() {
-      this.editingId = null;
-      this.editText = "";
-      this.editDueDate = "";
-    },
-
-    startEdit(todo) {
-      this.editingId = todo.id;
-      this.editText = todo.title;
-      this.editDueDate = todo.due_date || "";
-    },
-
-    toggleShowComplete() {
-        this.showComplete = !this.showComplete;
-        return !this.showComplete;
-    }, 
-
-    formatDate(dateString) {
-      if (!dateString) return "";
-      // Parse the date string directly without timezone conversion
-      // For dates in YYYY-MM-DD format
-      const [year, month, day] = dateString.split('T')[0].split('-');
-      const date = new Date(year, month - 1, day);
-      
-      return date.toLocaleDateString("en-US", { 
-        month: "short", 
-        day: "numeric", 
-        year: "numeric",
-        timeZone: undefined  // Use local timezone
-      });
-    },
-
-    isOverdue(todo) {
-      if (!todo.due_date || todo.completed) return false;
-      return new Date(todo.due_date) < new Date();
-    },
-  },
-  mounted() {
-    this.fetchTodos();
-  },
-};
-</script>
